@@ -1,0 +1,47 @@
+---
+- hosts: pi-homelab-01
+  become: yes
+  tasks:
+    - name: 'Enable bridge network kernel flag'
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: 'CNI: create install directory'
+      file:
+        path: /opt/cni
+        state: directory
+
+    - name: 'CNI: create install directory'
+      file:
+        path: /opt/cni/bin
+        state: directory
+
+    - name: 'CNI: download CNI'
+      get_url:
+        url: https://github.com/containernetworking/plugins/releases/download/v1.0.0/cni-plugins-linux-arm64-v1.0.0.tgz
+        dest: /opt/cni
+
+    - name: 'CNI: install CNI'
+      unarchive:
+        remote_src: yes
+        src: /opt/cni/cni-plugins-linux-arm64-v1.0.0.tgz
+        dest: /opt/cni/bin
+
+    - name: 'CNI: sysctl enable net.bridge.bridge-nf-call-arptables'
+      sysctl:
+        name: net.bridge.bridge-nf-call-arptables
+        value: 1
+        state: present
+
+    - name: 'CNI: sysctl enable net.bridge.bridge-nf-call-ip6tables'
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        state: present
+
+    - name: 'CNI: sysctl enable net.bridge.bridge-nf-call-iptables'
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present

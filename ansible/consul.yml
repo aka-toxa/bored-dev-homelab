@@ -1,0 +1,67 @@
+---
+- hosts: pi-homelab-01
+  become: yes
+  tasks:
+    - name: 'Consul: prepare install directory'
+      file:
+        path: /opt/consul/bin
+        recurse: yes
+        state: directory
+
+    - name: 'Consul: Download Consul'
+      get_url:
+        url: https://releases.hashicorp.com/consul/1.17.0/consul_1.17.0_linux_arm64.zip
+        dest: /opt/consul
+
+    - name: 'Consul: Unzip Consul'
+      unarchive:
+        remote_src: yes
+        src: /opt/consul/consul_1.17.0_linux_arm64.zip
+        dest: /opt/consul/bin
+
+    - name: 'Consul: create Consul group'
+      group:
+        name: consul
+        state: present
+
+    - name: 'Consul: create consul user'
+      user:
+        name: consul
+        state: present
+        groups:
+          - consul
+          - sudo
+        shell: /bin/bash
+
+    - name: 'Consul: prepare Consult config dir'
+      file:
+        path: /etc/consul.d
+        state: directory
+
+    - name: 'Consul: prepare Consult config file'
+      copy:
+        src: ./files/consul.conf
+        dest: /etc/consul.d/consul.conf
+
+    - name: 'Consul: Consul config'
+      copy:
+        src: ./files/consul.hcl
+        dest: /etc/consul.d/consul.hcl
+
+    - name: 'Consul: Setup consul data folder'
+      file:
+        path: /opt/consul/data
+        owner: consul
+        group: consul
+        state: directory
+
+    - name: 'Consul: Systemd config'
+      copy:
+        src: ./files/consul.service
+        dest: /etc/systemd/system/consul.service
+
+    - name: 'Consul: Enable and start Consul'
+      systemd:
+        name: consul
+        enabled: yes
+        state: started

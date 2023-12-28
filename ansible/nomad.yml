@@ -1,0 +1,40 @@
+---
+- hosts: pi-homelab-01
+  become: yes
+  tasks:
+    - name: 'Nomad: install gpg'
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: 'Nomad: add Nomad repository'
+      apt_repository:
+        repo: deb https://apt.releases.hashicorp.com bookworm main
+        state: present
+
+    - name: 'Nomad: install Nomad'
+      apt:
+        name: nomad
+        state: present
+
+    - name: 'Nomad: make Nomad user sudoer'
+      user:
+        name: 'nomad'
+        groups: sudo
+        append: yes
+
+    - name: 'Nomad: Systemd config'
+      copy:
+        src: ./files/nomad.service
+        dest: /etc/systemd/system/nomad.service
+
+    - name: 'Nomad: Nomad config'
+      copy:
+        src: ./files/nomad.hcl
+        dest: /etc/nomad.d/nomad.hcl
+
+    - name: 'Nomad: Enable and start Nomad'
+      systemd:
+        name: nomad
+        enabled: yes
+        state: started
