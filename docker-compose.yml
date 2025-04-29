@@ -1,0 +1,26 @@
+services:
+  docker_cache:
+    container_name: docker_cache
+    image: registry:2
+    ports:
+      - "5000:5002"
+    environment:
+      REGISTRY_HTTP_ADDR: "0.0.0.0:5002"
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: "/opt/dockeri"
+      REGISTRY_PROXY_REMOTEURL: "https://registry-1.docker.io"
+      REGISTRY_PROXY_TTL: "186h"
+    volumes:
+      - './docker/cache:/opt/dockeri'
+    restart: unless-stopped
+  docker_registry:
+    container_name: docker_registry
+    image: registry:2
+    ports:
+      - "5001:5001"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: "/opt/dockeri"
+      REGISTRY_HTTP_ADDR: "0.0.0.0:5001"
+    volumes:
+      - './docker/registry:/opt/dockeri'
+    restart: unless-stopped
+

@@ -32,3 +32,14 @@
           - docker-ce-cli
           - containerd.io
         state: present
+
+    - name: 'Docker: Install docker registry mirror'
+      copy:
+        src: ./files/docker-daemon.json
+        dest: /etc/docker/daemon.json
+
+    - name: 'Docker: Restart daemon'
+      systemd:
+        name: docker
+        enabled: yes
+        state: restarted
